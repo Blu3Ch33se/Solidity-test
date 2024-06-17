@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract FreeSpaceDice {
+    address public owner;
+
+    struct Roll {
+        uint8 result; // The result of the dice roll
+        uint256 timestamp; // The timestamp of the roll
+    }
+
+    mapping(address => Roll[]) public rolls;
+    mapping(address => uint256) public rollCount;
+
+    event DiceRolled(address indexed player, uint8 result);
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function rollDice() public {
+        uint8 result = random() % 100 + 1;
+        rolls[msg.sender].push(Roll({
+            result: result,
+            timestamp: block.timestamp
+        }));
+        rollCount[msg.sender]++;
+
+        emit DiceRolled(msg.sender, result);
+    }
+
+    function getRolls(address _player) public view returns (Roll[] memory) {
+        return rolls[_player];
+    }
+
+    function getRollCount(address _player) public view returns (uint256) {
+        return rollCount[_player];
+    }
+
+    function random() private view returns (uint8) {
+        return uint8(uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % 256);
+    }
+}
